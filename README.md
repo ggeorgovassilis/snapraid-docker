@@ -20,6 +20,6 @@ This will take a while.
 ./snapraid.sh --version
 
 
-5. Edit snapraid.conf to match your setup
+5. Edit snapraid.conf to match your setup. Paths must match the container-side of volume mounts, not how they exist on the host machine.
 
-6. Edit snapraid.sh volume mounts to match your setup. In my setup, all disks are mounted under /mnt/snapraid which simplifies volume mounts.
+6. Edit snapraid.sh volume mounts to match your setup. Ensure that volume mounts match paths in snapraid.conf
