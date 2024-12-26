@@ -20,6 +20,6 @@ This will take a while.
 ./snapraid.sh --version
 
 
-5. Edit snapraid.conf to match your setup. Paths must match the container-side of volume mounts, not how they exist on the host machine.
+5. By default, the script looks for /etc/snapraid.conf. An alternative file can be specified in the SNAPRAID_CONF environment variable. Paths in snapraid.conf must match the container side of volume mounts (eg. how the container sees them), not how they exist on the host machine.
 
 6. Edit snapraid.sh volume mounts to match your setup. Ensure that volume mounts match paths in snapraid.conf
