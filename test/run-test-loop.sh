@@ -9,6 +9,9 @@
 
 set -e
 
+workdir=""
+loop_devices=( )
+
 function setup_workdir () {
   random_file_name=$(cat /dev/urandom | tr -cd 'a-f0-9' | head -c 32)
   export workdir=/tmp/$random_file_name
@@ -26,13 +29,20 @@ function setup_image () {
   echo "$loop_dev"
 }
 
-teardown_loopdev () {
-	loopdev="$1"
-	umount "$loopdev"
-	losetup --detach "$loopdev"
+function teardown_loopdevices () {
+	umount "$@"
+	losetup --detach "$@"
 }
 
+function cleanup () {
+	echo Cleaning up
+	teardown_loopdevices "${loop_devices[@]}"
+}
+
+trap cleanup EXIT
+
 function pause () {
+	return 0
 	echo Press ENTER
 	read
 }
@@ -47,17 +57,20 @@ function snapraid () {
         snapraid \
         /bin/snapraid "$@"
 }
-echo Setting up work directory
 
-setup_workdir
+function setup () {
+	setup_workdir
 
-echo Setting up volumes
+	loopdev1=$(setup_image $workdir/images/data1.img $workdir/data1)
+	loopdev2=$(setup_image $workdir/images/data2.img $workdir/data2)
+	loopdev3=$(setup_image $workdir/images/data3.img $workdir/data3)
+	loopdev4=$(setup_image $workdir/images/parity1.img $workdir/parity1)
 
-loopdev1=$(setup_image $workdir/images/data1.img $workdir/data1)
-loopdev2=$(setup_image $workdir/images/data2.img $workdir/data2)
-loopdev3=$(setup_image $workdir/images/data3.img $workdir/data3)
-loopdev4=$(setup_image $workdir/images/parity1.img $workdir/parity1)
+	export loop_devices=("$loopdev1" "$loopdev2" "$loopdev3" "$loopdev4")
+}
 
+
+setup
 pause
 
 echo Running snapraid sync
@@ -94,7 +107,5 @@ md5_n=$(md5sum $testfile)
 [ "$md5" = "$md5_n" ] && echo OK contents are the same || (echo FAIL contents not the same && exit 1)
 echo Deleting volumes
 
-teardown_loopdev "$loopdev1"
-teardown_loopdev "$loopdev2"
-teardown_loopdev "$loopdev3"
-teardown_loopdev "$loopdev4"
+# not neccessary because trap EXIT will call cleanup
+# cleanup
